@@ -65,6 +65,13 @@ class ThomasModel {
 	private $called_class = '';
 
 	/**
+	 * The post type to save this model to in the database
+	 *
+	 * @var string $post_type
+	 */
+	protected $post_type = 'post';
+
+	/**
 	 * Constructor
 	 */
  	public function __construct( $var = null ) {
@@ -179,7 +186,10 @@ class ThomasModel {
 		$args = array(
 			'post_id' => $this->id,
 			'meta_input' => $sanitised_fields,
+			'post_type' => $this->getPostType()
 		);
+
+		var_dump( $args ); die();
 
 		// Hacky -- add and remove the wp_insert_post_empty_content filter
 		// so we can insert blank posts
@@ -190,6 +200,23 @@ class ThomasModel {
 		remove_filter( 'wp_insert_post_empty_content', '__return_false', 15 );
 
 		return true;
+	}
+
+	/**
+	 * Get the post type for this model
+	 *
+	 * @return string
+	 */
+	private function getPostType() {
+		$called_class = get_called_class();
+
+		if ( $this->post_type ) {
+			return $post_type;
+		} else if ( $called_class ) {
+			return strtolower( $called_class );
+		}
+
+		return 'post';
 	}
 
 	/**

@@ -101,40 +101,6 @@ add_action('init', function() {
 
 	$shop = new Shop();
 	$shop->location = 'High Street';
-
-	$greengrocer = new Shopkeeper();
-	$greengrocer->name = 'Simon';
-	$greengrocer->works_at = $grocer;
-	$greengrocer->temperament = 'Rude';
-
-	/*
-	 * You only need to save the highest-level object,
-	 * related objects are saved automatically:
-	 */
-	$greengrocer->save();
-
-	// You can also pass arrays into the constructor:
-	$greengrocer2 = new Shopkeeper( [
-		'name' => 'Tim',
-		'works_at' => new Shop( [
-			'location' => 'South Street'
-		] ),
-		'temperament' => 'polite'
-	] );
-
-	$greengrocer2->save();
-
-	/*
-	 * You can now query the greengrocers model by
-	 * chaining methods -- much nicer than faffing with
-	 * WP_Query:
-	 */
-	$collection = Shopkeeper::get();
-
-	/*
-	 * ThomasCollections are very basic right now. You can
-	 * get the first, last items and enumerate them --
-	 */
-	var_dump( $collection );
-	die();
+	$shop->save();
+	
 });
