@@ -1,9 +1,9 @@
 <?php
 /**
- * Main Thomas object class
+ * Main Thomas model class
  */
 
-class ThomasObject {
+class ThomasModel {
 
 	/**
 	 * The fields belonging to this object
@@ -41,7 +41,7 @@ class ThomasObject {
 	protected $validations = array();
 
 	/**
-	 * You can relate any field to another ThomasObject by giving its
+	 * You can relate any field to another ThomasModel by giving its
 	 * name here. We'll link it using it's post ID.
 	 *
 	 * You can access relations like this:
@@ -163,7 +163,7 @@ class ThomasObject {
 
 			// var_dump( new $class_name( $obj_id ) ); die();
 
-			if ( is_subclass_of( $class_name, 'ThomasObject' ) && $obj_id > 0 ) {
+			if ( is_subclass_of( $class_name, 'ThomasModel' ) && $obj_id > 0 ) {
 				$this->fields_data[$relation_key] = new $class_name( $post_id );
 			}
 		}
@@ -328,14 +328,14 @@ class ThomasObject {
 	}
 
 	/**
-	 * Public API for the object
+	 * Public API for the model
 	 */
 	public function __get( $key ) {
 		return $this->fields_data[$key];
 	}
 
 	/**
-	 * Public API for the object
+	 * Public API for the model
 	 */
 	public function __set( $key, $value ) {
 		$this->fields_data[$key] = $value;
