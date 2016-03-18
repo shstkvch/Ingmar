@@ -16,10 +16,25 @@ For instance, if I were building a directory of surly greengrocers: --
  */
 class Shop extends ThomasModel {
 
-	// add fields to objects (stored as post meta)
+	/*
+	 * Add fields to objects (stored as post meta)
+	 */
 	protected $fields = [
 		'location',
 		'price_range'
+	];
+
+	/*
+	 * Validate your data before saving so you don't accidentally
+	 * destroy everything and lose your hard-earned reputation:
+	 */
+	protected $validations = [
+		'location' => 'is_string'
+		'temperament' => [
+			'is_integer',
+			'$val <= 5', // basic conditional support
+			'$val > 0'
+		]
 	];
 
 }
@@ -38,6 +53,14 @@ class Shopkeeper extends ThomasModel {
 	 */
 	protected $relations = [
 		'works_at' => 'Shop'
+	];
+
+	protected $validations = [
+		'name' => [
+			'is_string',
+			'exists'
+		],
+		'temperament' => 'is_string'
 	];
 
 }
@@ -79,6 +102,5 @@ $collection = Shopkeeper::where( 'temperament', '==', 'polite' )->get();
  * get the first, last items and enumerate them --
  */
 var_dump( $collection->first() );
->
 
 ```

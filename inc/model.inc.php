@@ -168,8 +168,6 @@ class ThomasModel {
 		foreach ( $this->relations as $relation_key => $class_name ) {
 			$obj_id = $this->fields_data[$relation_key];
 
-			// var_dump( new $class_name( $obj_id ) ); die();
-
 			if ( is_subclass_of( $class_name, 'ThomasModel' ) && $obj_id > 0 ) {
 				$this->fields_data[$relation_key] = new $class_name( $post_id );
 			}
@@ -188,8 +186,6 @@ class ThomasModel {
 			'meta_input' => $sanitised_fields,
 			'post_type' => $this->getPostType()
 		);
-
-		var_dump( $args ); die();
 
 		// Hacky -- add and remove the wp_insert_post_empty_content filter
 		// so we can insert blank posts
@@ -211,7 +207,7 @@ class ThomasModel {
 		$called_class = get_called_class();
 
 		if ( $this->post_type ) {
-			return $post_type;
+			return $this->post_type;
 		} else if ( $called_class ) {
 			return strtolower( $called_class );
 		}
