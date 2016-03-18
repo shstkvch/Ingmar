@@ -3,7 +3,7 @@
  * Main Ingmar object class
  */
 
-class Ingmar_Object {
+class IngmarObject {
 
 	/**
 	 * The fields belonging to this object
@@ -27,6 +27,13 @@ class Ingmar_Object {
 	private $id = null;
 
 	/**
+	 * The WP_Post object for this object
+	 *
+	 * @var WP_Post $post
+	 */
+	private $wp_post;
+
+	/**
 	 * Validations to run when saving this object
 	 *
 	 * @var array $validations
@@ -34,10 +41,47 @@ class Ingmar_Object {
 	protected $validations = array();
 
 	/**
+	 * The current query being built up
+	 *
+	 * @var array $query
+	 */
+	private $query = array();
+
+	/**
 	 * Constructor
 	 */
- 	public function __construct( $fields_data = array() ) {
-		$this->fields_data = $fields_data;
+ 	public function __construct( $var = null ) {
+		if ( is_null( $this ) || is_null( $var ) ) {
+			return self;
+		}
+
+		/*
+		 * If it's an integer it's a post ID,
+		 * if it's a WP post we'll initialise with it
+		 * and if it's null then we're just being chained
+		 */
+		if ( is_integer( $var ) ) {
+			$this->id = $var;
+		} else if ( 'WP_Post' == get_class( $var ) ) {
+			$this->id = $var->ID;
+			$this->wp_post = $var;
+		}
+
+		$this->initialiseObject();
+	}
+
+	/**
+	 * Initialise the object
+	 */
+	private function initialiseObject() {
+		if ( is_null( $this->wp_post ) && $this->id ) {
+			$this->wp_post = new WP_Post( $this->id );
+		}
+
+		$meta = get_metadata( 'post', $this->id );
+
+		$this->fields_data = $meta;
+		$this->fields_data = $this->unsanitiseFields();
 	}
 
 	/**
@@ -59,7 +103,7 @@ class Ingmar_Object {
 			return $errors;
 		}
 
-		var_dump( $this->fields_data ); die();
+		// var_dump( $this->fields_data ); die();
 
 		$sanitised_fields = $this->sanitiseFields();
 
@@ -191,10 +235,27 @@ class Ingmar_Object {
 	 * Sanitise the fields before saving
 	 */
 	public function sanitiseFields() {
-		array_map( function( $item ) {
-			var_dump( $item );
-		}, $this->fields_data );
-		die();
+		$fields = array();
+
+		foreach( $this->fields_data as $key => $val ) {
+			$fields['_' . $key] = $val;
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Unsanitise the field after loading
+	 */
+	public function unsanitiseFields() {
+		$fields = array();
+
+		foreach( $this->fields_data as $key => $val ) {
+			$key = substr( $key, 1 );
+			$fields[$key] = $val;
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -211,6 +272,196 @@ class Ingmar_Object {
 	 */
 	public function __set( $key, $value ) {
 		$this->fields_data[$key] = $value;
+	}
+
+	/**
+	 * Where query
+	 *
+	 * @param string $field to filter on
+	 * @param string $compare operator
+	 * @param string $value to compare with
+	 */
+	function where( $field, $compare, $value ) {
+		return self::addQuery( 'where',
+			array(
+				'field' => $field,
+				'compare' => $compare,
+				'value' => $value
+			)
+		);
+	}
+
+	/**
+	 * Delete the selected rows
+	 */
+	function delete() {
+		self::addQuery( 'delete' );
+		return self::executeQuery();
+	}
+
+	/**
+	 * Get the selected rows
+	 */
+	function get() {
+		self::addQuery( 'get' );
+		return self::executeQuery();
+	}
+
+	/**
+	 * Limit the number of results
+	 *
+	 * @param integer $limit maximum number of results to return
+	 */
+	function limit( $limit ) {
+		return self::addQuery( 'limit', $limit );
+	}
+
+	/**
+	 * Skip the first x results
+	 *
+	 * @param integer $skip number of results to skip at the front
+	 */
+	function skip( $skip ) {
+		return self::addQuery( 'skip', $skip );
+	}
+
+	/**
+	 * Add a new query to the stack
+	 *
+	 * @param string $operation to add
+	 * @param mixed  $options detailling the operation
+	 */
+	private function addQuery( $operation, $options = null ) {
+		$new_query = array(
+			'operation' => $operation,
+			'options' => $options
+		);
+
+		if ( 'NULL' == gettype( $this ) ) {
+			$that = new self();
+			$that->_setQuery( $new_query );
+
+			return $that;
+		}
+
+		$this->query[] = $new_query;
+
+		return $this;
+	}
+
+	/**
+	 * Run the current query and return an array of Ingmar_Objects
+	 *
+	 * @return array
+	 */
+	private function executeQuery() {
+		$args = array(
+			'posts_per_page' => -1,
+			'post_type' => 'any',
+			'post_status' => 'any'
+		);
+
+		if ( 'NULL' !== gettype( $this ) ) {
+			foreach ( $this->query as $operation ) {
+				$args = self::appendQueryArg( $args, $operation );
+			}
+		}
+
+		$query = new WP_Query( $args );
+
+		return new IngmarCollection( $query->get_posts(), self );
+	}
+
+	/**
+	 * Add the operation to the args array
+	 *
+	 * @param  $args the existing args array
+	 * @param  $operation the next operation to add
+	 * @return $args
+	 */
+	private function appendQueryArg( $args, $op ) {
+		/*
+		 * This is very primitive right now, in the future there will
+		 * be a proper system for building this up...
+		 */
+		$operation = $op['operation'];
+		$options = $op['options'];
+
+		if ( 'where' == $operation ) {
+			$field   = $options['field'];
+			$compare = $options['compare'];
+			$value   = $options['value'];
+
+			$core = array(
+				'ID',
+				'post_author',
+				'post_date',
+				'post_date_gmt',
+				'post_content',
+				'post_title',
+				'post_excerpt',
+				'post_status',
+				'comment_status',
+				'ping_status',
+				'post_password',
+				'post_name',
+				'to_ping',
+				'pinged',
+				'post_modified',
+				'post_modified_gmt',
+				'post_content_filtered',
+				'post_parent',
+				'guid',
+				'menu_order',
+				'post_type',
+				'post_mime_type',
+				'comment_count',
+			);
+
+			// non-core fields get an underscore added to prevent them showing up in the admin
+			if ( in_array( $field, $core ) ) {
+				return;
+			}
+			$field .= '_';
+
+			$args['meta_query'] = self::appendMetaQuery( $options['meta_query'], $field, $compare, $value );
+		} if ( 'limit' == $operation ){
+			$args['posts_per_page'] = $options;
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Append a meta clause to the meta query
+	 *
+	 * @param  array $meta_query the existing query
+	 * @param  string $field the field
+	 * @param  string $compare the comparison
+	 * @param  string $value the value
+	 * @return array $meta_query the new meta query array
+	 */
+	private function appendMetaQuery( $meta_query, $field, $compare, $value ) {
+		if ( is_null( $meta_query ) ) {
+			$meta_query = array(
+				'relation' => 'AND'
+			);
+		}
+
+		$meta_query[] = array(
+			'key' => $field,
+			'compare' => $compare,
+			'value' => $value
+		);
+
+		return $meta_query;
+	}
+
+	/**
+	 * Set the query object (called from the static method)
+	 */
+	public function _setQuery( $query ) {
+		$this->query[] = $query;
 	}
 
 }

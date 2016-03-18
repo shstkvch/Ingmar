@@ -12,9 +12,10 @@
  */
 
 require( 'inc/object.inc.php');
+require( 'inc/collection.inc.php');
 
 
-class HTBD_Testimonial extends Ingmar_Object {
+class Testimonial extends IngmarObject {
 
 	protected $fields = array(
 		'title',
@@ -43,9 +44,7 @@ class HTBD_Testimonial extends Ingmar_Object {
 }
 
 add_action('init', function() {
-	$testimonial = new HTBD_Testimonial();
-	
-	$testimonial->title = 'My first testimonial';
+	$testimonials = Testimonial::limit(10)->get();
 
-	$testimonial->save();
+	$first = $testimonials->first();
 });
