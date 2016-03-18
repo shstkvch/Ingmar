@@ -9,7 +9,7 @@ module.exports = function( grunt ) {
 
 		addtextdomain: {
 			options: {
-				textdomain: 'ingmar',
+				textdomain: 'thomas',
 			},
 			target: {
 				files: {
@@ -30,8 +30,8 @@ module.exports = function( grunt ) {
 			target: {
 				options: {
 					domainPath: '/languages',
-					mainFile: 'ingmar.php',
-					potFilename: 'ingmar.pot',
+					mainFile: 'thomas.php',
+					potFilename: 'thomas.pot',
 					potHeaders: {
 						poedit: true,
 						'x-poedit-keywordslist': true

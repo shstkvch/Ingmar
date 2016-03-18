@@ -1,20 +1,20 @@
 <?php
 /**
- * Plugin Name: Ingmar
+ * Plugin Name: Thomas
  * Version: 0.1-alpha
- * Description: Modern development tools for WordPress
+ * Description: Improved APIs for faster WordPress development.
  * Author: David Hewitson
  * Author URI: http://github.com/shstkvch/
- * Plugin URI: http://github.com/shstkvch/ingmar
- * Text Domain: ingmar
+ * Plugin URI: http://github.com/shstkvch/thomas
+ * Text Domain: thomas
  * Domain Path: /languages
- * @package Ingmar
+ * @package Thomas
  */
 
 require( 'inc/object.inc.php');
 require( 'inc/collection.inc.php');
 
-class Client extends IngmarObject {
+class Client extends ThomasObject {
 
 	protected $fields = array(
 		'name',
@@ -25,7 +25,7 @@ class Client extends IngmarObject {
 }
 
 
-class Testimonial extends IngmarObject {
+class Testimonial extends ThomasObject {
 
 	/**
 	 * Declare your fields here for the object.
@@ -38,7 +38,7 @@ class Testimonial extends IngmarObject {
 	);
 
 	/**
-	 * You can relate any field to another IngmarObject by giving its class
+	 * You can relate any field to another ThomasObject by giving its class
 	 * name here. We'll link it using it's post ID.
 	 *
 	 * You can access relations like this:
@@ -70,16 +70,7 @@ class Testimonial extends IngmarObject {
 }
 
 add_action('init', function() {
-	// $testimonial = new Testimonial();
-	// $testimonial->title = 'My fortieth testimonial';
-	// $testimonial->client = new Client();
-	// $testimonial->client->name = 'Daff';
-	// $testimonial->save();
-	//
-	$first = Testimonial::limit(10)->get()->first();
-	// $first->client = new Client();
-	// $first->client->name = 'hhehwhehwe';
-	// $first->save();
+	$first = Testimonial::first();
 
 	var_dump( $first );
 	die();

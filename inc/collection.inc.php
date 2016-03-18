@@ -1,9 +1,9 @@
 <?php
 /**
- * Main Ingmar Collection class
+ * Main Phoenix Collection class
  */
 
-class IngmarCollection {
+class Collection {
 
 	/**
 	 * The raw post objects
@@ -22,11 +22,11 @@ class IngmarCollection {
 	 *
 	 * @param  array of WP_Post objects
 	 * @param  string the class to use for creating new objects
-	 * @return IngmarCollection
+	 * @return ThomasCollection
 	 */
 	function __construct( $posts, $class ) {
 		if ( !is_array( $posts ) ) {
-			throw new Exception( 'Invalid $posts array for IngmarCollection.' );
+			throw new Exception( 'Invalid $posts array for ThomasCollection.' );
 		}
 
 		$this->posts = $posts;

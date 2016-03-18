@@ -1,9 +1,9 @@
 <?php
 /**
- * Main Ingmar object class
+ * Main Thomas object class
  */
 
-class IngmarObject {
+class ThomasObject {
 
 	/**
 	 * The fields belonging to this object
@@ -41,7 +41,7 @@ class IngmarObject {
 	protected $validations = array();
 
 	/**
-	 * You can relate any field to another IngmarObject by giving its
+	 * You can relate any field to another ThomasObject by giving its
 	 * name here. We'll link it using it's post ID.
 	 *
 	 * You can access relations like this:
@@ -117,7 +117,7 @@ class IngmarObject {
 	 * If there's a validation error, an array of validation errors will be returned.
 	 * If something else goes wrong, an exception will be thrown.
 	 *
-	 * @return Ingmar_Object|Array
+	 * @return Thomas_Object|Array
 	 * @throws Exception
 	 */
 	public function save() {
@@ -135,7 +135,7 @@ class IngmarObject {
 		$this->saveOrUpdate( $sanitised_fields );
 
 		if ( !is_integer( $this->id ) || $this->id < 1 ) {
-			throw new Exception( 'Invalid ID for Ingmar_Object' );
+			throw new Exception( 'Invalid ID for Thomas_Object' );
 			return false;
 		}
 	}
@@ -163,7 +163,7 @@ class IngmarObject {
 
 			// var_dump( new $class_name( $obj_id ) ); die();
 
-			if ( is_subclass_of( $class_name, 'IngmarObject' ) && $obj_id > 0 ) {
+			if ( is_subclass_of( $class_name, 'ThomasObject' ) && $obj_id > 0 ) {
 				$this->fields_data[$relation_key] = new $class_name( $post_id );
 			}
 		}
@@ -240,7 +240,7 @@ class IngmarObject {
 		}
 
 		/*
-		 * TODO: Check if a field value is a valid Ingmar_User
+		 * TODO: Check if a field value is a valid Thomas_User
 		 */
 		if ( 'is_user' === $validator ) {
 			return true;
@@ -418,13 +418,13 @@ class IngmarObject {
 	}
 
 	/**
-	 * Run the current query and return an array of Ingmar_Objects
+	 * Run the current query and return an array of Thomas_Objects
 	 *
 	 * @return array
 	 */
 	private function executeQuery() {
 		$args = array(
-			'posts_per_page' => -1,
+			'posts_per_page' => 100,
 			'post_type' => 'any',
 			'post_status' => 'any'
 		);
@@ -440,7 +440,7 @@ class IngmarObject {
 
 		$query = new WP_Query( $args );
 
-		return new IngmarCollection( $query->get_posts(), $called_class );
+		return new ThomasCollection( $query->get_posts(), $called_class );
 	}
 
 	/**
