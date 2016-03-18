@@ -1,9 +1,9 @@
 <?php
 /**
- * Main Phoenix Collection class
+ * Main Thomas Collection class
  */
 
-class Collection {
+class ThomasCollection {
 
 	/**
 	 * The raw post objects
