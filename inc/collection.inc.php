@@ -24,7 +24,7 @@ class IngmarCollection {
 	 * @param  string the class to use for creating new objects
 	 * @return IngmarCollection
 	 */
-	function __construct( $posts, $class = IngmarObject ) {
+	function __construct( $posts, $class ) {
 		if ( !is_array( $posts ) ) {
 			throw new Exception( 'Invalid $posts array for IngmarCollection.' );
 		}
@@ -32,7 +32,7 @@ class IngmarCollection {
 		$this->posts = $posts;
 
 		// load the posts into our objects array
-		$this->loadPosts();
+		$this->loadPosts( $class );
 
 		return $this;
 	}
@@ -56,9 +56,9 @@ class IngmarCollection {
 	/**
 	 * Load the posts into our object array
 	 */
-	private function loadPosts() {
+	private function loadPosts( $class ) {
 		foreach( $this->posts as $post ) {
-			$this->objects[] = new IngmarObject( $post );
+			$this->objects[] = new $class( $post );
 		}
 	}
 

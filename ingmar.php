@@ -14,13 +14,39 @@
 require( 'inc/object.inc.php');
 require( 'inc/collection.inc.php');
 
+class Client extends IngmarObject {
+
+	protected $fields = array(
+		'name',
+		'profession',
+		'location'
+	);
+
+}
+
 
 class Testimonial extends IngmarObject {
 
+	/**
+	 * Declare your fields here for the object.
+	 */
 	protected $fields = array(
 		'title',
 		'author',
-		'rating'
+		'rating',
+		'client'
+	);
+
+	/**
+	 * You can relate any field to another IngmarObject by giving its class
+	 * name here. We'll link it using it's post ID.
+	 *
+	 * You can access relations like this:
+	 *
+	 * Testimonial->first()->client
+	 */
+	protected $relations = array(
+		'client' => 'Client'
 	);
 
 	protected $validations = array(
@@ -44,7 +70,17 @@ class Testimonial extends IngmarObject {
 }
 
 add_action('init', function() {
-	$testimonials = Testimonial::limit(10)->get();
+	// $testimonial = new Testimonial();
+	// $testimonial->title = 'My fortieth testimonial';
+	// $testimonial->client = new Client();
+	// $testimonial->client->name = 'Daff';
+	// $testimonial->save();
+	//
+	$first = Testimonial::limit(10)->get()->first();
+	// $first->client = new Client();
+	// $first->client->name = 'hhehwhehwe';
+	// $first->save();
 
-	$first = $testimonials->first();
+	var_dump( $first );
+	die();
 });

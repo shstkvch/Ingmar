@@ -41,11 +41,28 @@ class IngmarObject {
 	protected $validations = array();
 
 	/**
+	 * You can relate any field to another IngmarObject by giving its
+	 * name here. We'll link it using it's post ID.
+	 *
+	 * You can access relations like this:
+	 *
+	 * Testimonial->first()->client
+	 */
+	protected $relations = array();
+
+	/**
 	 * The current query being built up
 	 *
 	 * @var array $query
 	 */
 	private $query = array();
+
+	/**
+	 * The called class (so we can load in the proper relations/fields)
+	 *
+	 * @var string $called_class
+	 */
+	private $called_class = '';
 
 	/**
 	 * Constructor
@@ -62,9 +79,11 @@ class IngmarObject {
 		 */
 		if ( is_integer( $var ) ) {
 			$this->id = $var;
-		} else if ( 'WP_Post' == get_class( $var ) ) {
-			$this->id = $var->ID;
-			$this->wp_post = $var;
+		} else if ( is_object( $var ) ) {
+			if ( 'WP_Post' == get_class( $var ) ) {
+				$this->id = $var->ID;
+				$this->wp_post = $var;
+			}
 		}
 
 		$this->initialiseObject();
@@ -80,8 +99,15 @@ class IngmarObject {
 
 		$meta = get_metadata( 'post', $this->id );
 
+		// if ( $meta ){
+		// 	var_dump( $meta ); die();
+		// }
+
 		$this->fields_data = $meta;
-		$this->fields_data = $this->unsanitiseFields();
+		$this->unsanitiseFields();
+		$this->expandRelatedObjects();
+
+		// var_dump( $this->fields_data ); die();
 	}
 
 	/**
@@ -103,8 +129,7 @@ class IngmarObject {
 			return $errors;
 		}
 
-		// var_dump( $this->fields_data ); die();
-
+		$this->saveNewFieldObjects();
 		$sanitised_fields = $this->sanitiseFields();
 
 		$this->saveOrUpdate( $sanitised_fields );
@@ -112,6 +137,35 @@ class IngmarObject {
 		if ( !is_integer( $this->id ) || $this->id < 1 ) {
 			throw new Exception( 'Invalid ID for Ingmar_Object' );
 			return false;
+		}
+	}
+
+	/**
+	 * Save new objects which are stored in fields
+	 */
+	private function saveNewFieldObjects() {
+		foreach ( $this->relations as $relation_key => $relation_val ) {
+			$obj = $this->fields_data[$relation_key];
+
+			if ( is_object( $obj ) ) {
+				$obj->save();
+				$this->fields_data[$relation_key] = $obj->id;
+			}
+		}
+	}
+
+	/**
+	 * Find related objects and expand them to full class instances
+	 */
+	private function expandRelatedObjects() {
+		foreach ( $this->relations as $relation_key => $class_name ) {
+			$obj_id = $this->fields_data[$relation_key];
+
+			// var_dump( new $class_name( $obj_id ) ); die();
+
+			if ( is_subclass_of( $class_name, 'IngmarObject' ) && $obj_id > 0 ) {
+				$this->fields_data[$relation_key] = new $class_name( $post_id );
+			}
 		}
 	}
 
@@ -245,17 +299,32 @@ class IngmarObject {
 	}
 
 	/**
+	 * Determine if a field is a relationship field
+	 */
+	public function isRelationField( $key ) {
+		return array_key_exists( $key, $this->relations );
+	}
+
+	/**
 	 * Unsanitise the field after loading
 	 */
 	public function unsanitiseFields() {
 		$fields = array();
 
-		foreach( $this->fields_data as $key => $val ) {
-			$key = substr( $key, 1 );
-			$fields[$key] = $val;
+		if ( is_array( $this->fields_data ) ) {
+			foreach( $this->fields_data as $key => $val ) {
+				$key = substr( $key, 1 );
+
+				// WP loves extraneous arrays
+				if ( is_array( $val ) && count( $val ) == 1 ) {
+					$val = $val[0];
+				}
+
+				$fields[$key] = $val;
+			}
 		}
 
-		return $fields;
+		$this->fields_data = $fields;
 	}
 
 	/**
@@ -267,8 +336,6 @@ class IngmarObject {
 
 	/**
 	 * Public API for the object
-	 *
-	 * @TODO validation etc
 	 */
 	public function __set( $key, $value ) {
 		$this->fields_data[$key] = $value;
@@ -340,6 +407,7 @@ class IngmarObject {
 		if ( 'NULL' == gettype( $this ) ) {
 			$that = new self();
 			$that->_setQuery( $new_query );
+			$that->_setCalledClass( get_called_class() );
 
 			return $that;
 		}
@@ -361,19 +429,22 @@ class IngmarObject {
 			'post_status' => 'any'
 		);
 
+		$called_class = get_called_class();
+
 		if ( 'NULL' !== gettype( $this ) ) {
 			foreach ( $this->query as $operation ) {
 				$args = self::appendQueryArg( $args, $operation );
 			}
+			$called_class = $this->called_class;
 		}
 
 		$query = new WP_Query( $args );
 
-		return new IngmarCollection( $query->get_posts(), self );
+		return new IngmarCollection( $query->get_posts(), $called_class );
 	}
 
 	/**
-	 * Add the operation to the args array
+	 * Add the operation to the args $arrayName = array('' => , );
 	 *
 	 * @param  $args the existing args array
 	 * @param  $operation the next operation to add
@@ -458,10 +529,24 @@ class IngmarObject {
 	}
 
 	/**
+	 * Set the called class
+	 */
+	protected function _setCalledClass( $class ) {
+		$this->called_class = $class;
+	}
+
+	/**
 	 * Set the query object (called from the static method)
 	 */
 	public function _setQuery( $query ) {
 		$this->query[] = $query;
+	}
+
+	/**
+	 * Return the ID of the object if we cast it to a string
+	 */
+	public function __tostring() {
+		return $this->id;
 	}
 
 }
