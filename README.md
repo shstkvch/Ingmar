@@ -6,7 +6,7 @@ Modern development tools for WordPress (very rough & experimental.)
 ## Features
 **Basic ORM** - model your application's objects, query them and relate them together on any fields. (50% working)
 
-**Validation** - doesn't work yet!
+**Validation** - half-working. You can specify validation methods in the models (is_string, is_email, is_ClassName) and the thing will spit at you if you pass in the wrong data
 
 ## Example
 For instance, if I were building a directory of surly greengrocers: --
