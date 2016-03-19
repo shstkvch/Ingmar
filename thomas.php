@@ -100,11 +100,13 @@ class Shopkeeper extends ThomasModel {
 
 
 add_action('init', function() {
-	$shop = new Shop();
-	$shop->location = 'High Street';
-	$shop->save();
-
+	// $shop = new Shop();
+	// $shop->location = 'High Street';
+	// $shop->save();
+	//
 	// var_dump( $shop );
 
 	// var_dump( Shop::get() );
+	$shops = Shop::limit(10);
+	var_dump( $shops );
 });

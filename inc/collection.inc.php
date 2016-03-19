@@ -54,6 +54,13 @@ class ThomasCollection {
 	}
 
 	/**
+	 * Run a callback on every item
+	 */
+	public function each( $callback ) {
+		array_walk( $this->objects, $callback );
+	}
+
+	/**
 	 * Load the posts into our object array
 	 */
 	private function loadPosts( $class ) {

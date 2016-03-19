@@ -36,7 +36,7 @@ class ThomasModel {
 	/**
 	 * Database table to use
 	 *
-	 * You can use 'post', 'user', 'comment', 'option' or a custom table name.
+	 * You can use 'post', 'comment', 'option' or a custom table name.
 	 *
 	 * Using a custom table is ideal if your data doesn't fit the standard
 	 * WordPress structure, and it can make queries quicker to run because
@@ -197,8 +197,6 @@ class ThomasModel {
 			'post_type' => self::getPostType()
 		);
 
-		// var_dump( $args ); die();
-
 		// Hacky -- add and remove the wp_insert_post_empty_content filter
 		// so we can insert blank posts
 		add_filter( 'wp_insert_post_empty_content', '__return_false', 15 );
@@ -221,11 +219,14 @@ class ThomasModel {
 			if ( $this->post_type !== 'post' ) {
 				return $this->post_type;
 			}
+			if ( $this->called_class ) {
+				return strtolower( $this->called_class );
+			}
 		}
 
 		$called_class = get_called_class();
 
-		if ( $called_class ) {
+		if ( $called_class && $called_class !== 'ThomasModel' ) {
 			return strtolower( $called_class );
 		}
 
@@ -402,8 +403,16 @@ class ThomasModel {
 	 * Delete the selected rows
 	 */
 	function delete() {
-		self::addQuery( 'delete' );
-		return self::executeQuery();
+		$posts = self::executeQuery();
+		return self::trashQuery( $posts, true );
+	}
+
+	/**
+	 * Trash the selected rows
+	 */
+	function trash() {
+		$posts = self::executeQuery();
+		return self::trashQuery( $posts, false );
 	}
 
 	/**
@@ -471,12 +480,15 @@ class ThomasModel {
 
 		if ( 'NULL' !== gettype( $this ) ) {
 			foreach ( $this->query as $operation ) {
-				$args = self::appendQueryArg( $args, $operation );
+				$type = $this->database_table;
+				$args = self::appendQueryArg( $args, $operation, $type );
 			}
 			$called_class = $this->called_class;
 		} else {
 			$called_class = get_called_class();
 		}
+
+		// var_dump( $args ); die();
 
 		$query = new WP_Query( $args );
 
@@ -484,13 +496,42 @@ class ThomasModel {
 	}
 
 	/**
+	 * Trash (or permanently delete) a given array of posts
+	 *
+	 * @param array $objects to trash
+	 * @param bool  $hard if true, permanently delete them
+	 */
+	private static function trashQuery( $objects, $hard = false ) {
+		$objects->each(function( $object ) {
+			$object->_trash( $hard );
+		});
+
+		return true;
+	}
+
+	/**
+	 * Trash this object
+	 *
+	 * @param bool $hard if true, permanently delete it
+	 */
+	private function _trash( $hard ) {
+		wp_delete_post( $this->id, $hard );
+		$this->trashed = true;
+
+		if ( $hard ) {
+			unset( $this );
+		}
+	}
+
+	/**
 	 * Add the operation to the args $arrayName = array('' => , );
 	 *
 	 * @param  $args the existing args array
 	 * @param  $operation the next operation to add
+	 * @param  $type of object we're modifying (post/comment/option etc)
 	 * @return $args
 	 */
-	private function appendQueryArg( $args, $op ) {
+	private function appendQueryArg( $args, $op, $type = 'post' ) {
 		/*
 		 * This is very primitive right now, in the future there will
 		 * be a proper system for building this up...
@@ -536,7 +577,8 @@ class ThomasModel {
 			$field .= '_';
 
 			$args['meta_query'] = self::appendMetaQuery( $options['meta_query'], $field, $compare, $value );
-		} if ( 'limit' == $operation ){
+		}
+		if ( 'limit' == $operation ){
 			$args['posts_per_page'] = $options;
 		}
 
