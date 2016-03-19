@@ -47,7 +47,6 @@ class SiteRouter extends ThomasRouter {
 		 * You can create routes by entering the names of WordPress template files
 		 * such as index, front-page, page, 404 and custom stuff like category-test.php
 		 */
-
 		$router::get( 'index', 'HomepageController@main' );
 		$router::get( 'front-page', 'HomepageController@main' );
 		$router::get( 'category-test', 'FeedsController@showFeed' );

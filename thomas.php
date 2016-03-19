@@ -11,8 +11,10 @@
  * @package Thomas
  */
 
-require( 'inc/model.inc.php');
-require( 'inc/collection.inc.php');
+require( 'inc/model.inc.php' );
+require( 'inc/collection.inc.php' );
+require( 'inc/routing.inc.php' );
+require( 'vendor/autoload.php' );
 
 class Client extends ThomasModel {
 
