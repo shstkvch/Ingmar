@@ -34,6 +34,20 @@ class ThomasModel {
 	private $wp_post;
 
 	/**
+	 * Database table to use
+	 *
+	 * You can use 'post', 'user', 'comment', 'option' or a custom table name.
+	 *
+	 * Using a custom table is ideal if your data doesn't fit the standard
+	 * WordPress structure, and it can make queries quicker to run because
+	 * it will use a flat structure (with a column for each field.)
+	 *
+	 * You can change your table type at any time, but any objects left
+	 * on the old table will be inaccessible using the API.
+	 */
+	private $database_table = 'post';
+
+	/**
 	 * Validations to run when saving this object
 	 *
 	 * @var array $validations
@@ -104,11 +118,7 @@ class ThomasModel {
 			$this->wp_post = new WP_Post( $this->id );
 		}
 
-		$meta = get_metadata( 'post', $this->id );
-
-		// if ( $meta ){
-		// 	var_dump( $meta ); die();
-		// }
+		$meta = get_metadata( $this->database_table, $this->id );
 
 		$this->fields_data = $meta;
 		$this->unsanitiseFields();
@@ -195,7 +205,7 @@ class ThomasModel {
 
 		$this->id = wp_insert_post( $args, true );
 
-		remove_filter( 'wp_insert_post_empty_content', '__return_false', 15 );
+		remove_filter( 'wp_insert_post_empty_contet', '__return_false', 15 );
 
 		return true;
 	}
