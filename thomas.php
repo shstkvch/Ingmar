@@ -14,6 +14,7 @@
 require( 'inc/model.inc.php' );
 require( 'inc/collection.inc.php' );
 require( 'inc/routing.inc.php' );
+require( 'inc/controller.inc.php' );
 require( 'vendor/autoload.php' );
 
 class Client extends ThomasModel {
@@ -107,6 +108,6 @@ add_action('init', function() {
 	// var_dump( $shop );
 
 	// var_dump( Shop::get() );
-	$shops = Shop::limit(10);
-	var_dump( $shops );
+	// $shops = Shop::limit(10);
+	// var_dump( $shops );
 });

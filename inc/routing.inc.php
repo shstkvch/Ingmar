@@ -28,7 +28,7 @@ class ThomasRouter {
 	}
 
 	function init( $router ) {
-		$router::get( 'index', 'indexController' );
+		$router::get( 'index', 'IndexController' );
 		$router::get( '404', '404Controller' );
 	}
 
@@ -46,24 +46,35 @@ class ThomasRouter {
 
 	function loadController() {
 		if ( self::$controller_to_load ) {
-			$loader = new Twig_Loader_Array( array(
-				'index.twig' => 'Hello {{ name }}'
-			) );
+			// $loader = new Twig_Loader_Array( array(
+			// 	'index.twig' => 'Hello {{ name }}'
+			// ) );
+			//
+			// $cache_dir = realpath( __DIR__ . '/../twig_cache/' );
+			//
+			// if ( !is_dir( $cache_dir ) ) {
+			// 	mkdir( $cache_dir, 0777, true );
+			// }
+			//
+			// $twig = new Twig_Environment( $loader, array(
+			// 	'auto_reload' => true,
+			// 	'cache' => $cache_dir
+			// ) );
+			//
+			// print $twig->render('index.twig', array(
+			// 	'name' => 'david'
+			// ) );
+			if ( class_exists( self::$controller_to_load ) ) {
+				$controller = new self::$controller_to_load();
 
-			$cache_dir = realpath( __DIR__ . '/../twig_cache/' );
+				/*
+				 * TODO: the ThomasViewContext will use __get to catch changes
+				 * (array-like) and save them to the $controller object somehow
+				 */
+				$view_context = new ThomasViewContext( $controller );
 
-			if ( !is_dir( $cache_dir ) ) {
-				mkdir( $cache_dir, 0777, true );
+				$controller->main( $view_context );
 			}
-
-			$twig = new Twig_Environment( $loader, array(
-				'auto_reload' => true,
-				'cache' => $cache_dir
-			) );
-
-			print $twig->render('index.twig', array(
-				'name' => 'david'
-			) );
 		}
 	}
 }

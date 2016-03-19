@@ -76,7 +76,7 @@ class ThomasModel {
 	 *
 	 * @var string $called_class
 	 */
-	private $called_class = '';
+	private $called_class = 'ThomasModel';
 
 	/**
 	 * The post type to save this model to in the database
@@ -439,6 +439,18 @@ class ThomasModel {
 	 */
 	function skip( $skip ) {
 		return self::addQuery( 'skip', $skip );
+	}
+
+	/**
+	 * Create a new instance of the class
+	 *
+	 * @param mixed $params
+	 * @return ThomasModel
+	 */
+	function create( $params = null ) {
+		$class = get_called_class();
+
+		return new $class( $params );
 	}
 
 	/**
