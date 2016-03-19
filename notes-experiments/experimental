@@ -1,0 +1,121 @@
+Would it be possible just totally redo WP_Query? Or, like, provide a library that steps around it?
+
+I know it's not really the WordPress way, but the idea of a modern, fast API is quite exciting.
+
+Especially if you could sidestep the wp_posts table completely... maybe provide an option that uses flat DB tables rather than fannying about with postmeta everywhere?
+
+Probably a very small market for that kind of thing and it's unattractive even to me as a developer.
+
+But it would be nice to be able to do stuff like this without agony:
+
+// trash every post that I've commented on:
+
+$username = 'david';
+
+$comments = User::where('username', '==', $username)->comments;
+
+$comments->each(function( $comment ) {
+	$comment->post->trash();
+});
+
+What other problems do WP developers have? WP Templating is a pain and Timber is somewhat good at alleviating the hassle, but I think it could go further.
+
+I like the FB approach of using helpers for everything. Maybe there is something in that that I could learn from.
+
+Timber has a router but it's not very good. Could I write something better?
+
+wp-content/
+	themes/
+		my-theme-folder/
+			routes.php
+			views/
+				base.twig
+				home.twig
+			controllers/
+				HomepageController.php
+				FeedsController.php
+				LovePoemController.php
+	models/
+		poem.php
+
+## Routes.php
+
+```
+class SiteRouter extends ThomasRouter {
+
+	public function init( $router ) {
+		/*
+		 * You can create routes by entering the names of WordPress template files
+		 * such as index, front-page, page, 404 and custom stuff like category-test.php
+		 */
+		$router::get( 'index', 'HomepageController@main' );
+		$router::get( 'front-page', 'HomepageController@main' );
+		$router::get( 'category-test', 'FeedsController@showFeed' );
+
+		/*
+		 * You can also create custom routes for your own endpoints. To do this,
+		 * start it with a forward slash:
+		 */
+		$router::get( '/love-poem', 'LovePoemController@showPoem' );
+	}
+
+}
+```
+## HomepageController.php
+```
+class HomepageController extends ThomasController {
+
+	public function main( $view ) {
+		/*
+		 * This is the same as while( have_posts() ): the_post() and
+		 * will return the posts for the homepage with default settings:
+		 */
+		$view->posts = $this->posts->get();
+
+		// You can of course override the query like this --
+
+		$view->posts = $this->posts->in('my_category')->get();
+
+		// more advanced stuff --
+
+		$mens_categories = $this->categories()
+			->where( 'gender', '=', 'men' )
+			->get();
+
+		// query a single product by slug or ID
+		$horrible_product = $this->products('dire_polo')->get();
+
+		$view->posts = $this->products
+			->where( 'price', '<', 10 )
+			->in( $mens_categories )
+			->exclude( $horrible_product );
+
+		/*
+		 * Cache the view for one day for unregistered users, but never for
+		 * logged in users. You can provide the timeout in human-readable text.
+		 *
+		 * The template will be baked to an HTML file and served up
+		 * from the disk, and the whole controller will be skipped.
+		 *
+		 * You can clear the cache for controllers like this --
+		 *
+		 * $this->clearCache( 'HomepageController' ); // the whole controller
+		 * $this->clearCache( 'HomepageController@main' ); // one function
+		 * $this->clearCache( 'all' ); // every controller
+		 */
+
+		$this->cacheFor( '1 day', false );
+
+		return 'home'; // return the template you want to load
+
+		/*
+		 * Other things you can do:
+		 *
+		 * return 'home/another'; // a tempalte in a subdirectory
+		 * return $this->redirect( 'http://example.com' ); // a URL redirect
+		 * return $this->redirect( $this->posts->first() ); // redirect to a post
+		 */
+	}
+
+}
+```
