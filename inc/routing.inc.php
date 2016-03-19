@@ -50,13 +50,19 @@ class ThomasRouter {
 				'index.twig' => 'Hello {{ name }}'
 			) );
 
+			$cache_dir = realpath( __DIR__ . '/../twig_cache/' );
+
+			if ( !is_dir( $cache_dir ) ) {
+				mkdir( $cache_dir, 0777, true );
+			}
+
 			$twig = new Twig_Environment( $loader, array(
 				'auto_reload' => true,
-				'cache' => realpath( __DIR__ )
+				'cache' => $cache_dir
 			) );
 
 			print $twig->render('index.twig', array(
-				'name'=> 'david'
+				'name' => 'david'
 			) );
 		}
 	}
