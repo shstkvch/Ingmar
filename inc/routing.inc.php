@@ -46,7 +46,18 @@ class ThomasRouter {
 
 	function loadController() {
 		if ( self::$controller_to_load ) {
-			print( 'loaded controller ' . self::$controller_to_load );
+			$loader = new Twig_Loader_Array( array(
+				'index.twig' => 'Hello {{ name }}'
+			) );
+
+			$twig = new Twig_Environment( $loader, array(
+				'auto_reload' => true,
+				'cache' => realpath( __DIR__ )
+			) );
+
+			print $twig->render('index.twig', array(
+				'name'=> 'david'
+			) );
 		}
 	}
 }
