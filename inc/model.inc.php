@@ -184,8 +184,10 @@ class ThomasModel {
 		$args = array(
 			'post_id' => $this->id,
 			'meta_input' => $sanitised_fields,
-			'post_type' => $this->getPostType()
+			'post_type' => self::getPostType()
 		);
+
+		// var_dump( $args ); die();
 
 		// Hacky -- add and remove the wp_insert_post_empty_content filter
 		// so we can insert blank posts
@@ -204,11 +206,16 @@ class ThomasModel {
 	 * @return string
 	 */
 	private function getPostType() {
+		if ( $this ) {
+			// we're only interested if it's been overridden
+			if ( $this->post_type !== 'post' ) {
+				return $this->post_type;
+			}
+		}
+
 		$called_class = get_called_class();
 
-		if ( $this->post_type ) {
-			return $this->post_type;
-		} else if ( $called_class ) {
+		if ( $called_class ) {
 			return strtolower( $called_class );
 		}
 
@@ -447,18 +454,18 @@ class ThomasModel {
 	 */
 	private function executeQuery() {
 		$args = array(
-			'posts_per_page' => 100,
-			'post_type' => 'any',
+			'posts_per_page' => 10,
+			'post_type' => self::getPostType(),
 			'post_status' => 'any'
 		);
-
-		$called_class = get_called_class();
 
 		if ( 'NULL' !== gettype( $this ) ) {
 			foreach ( $this->query as $operation ) {
 				$args = self::appendQueryArg( $args, $operation );
 			}
 			$called_class = $this->called_class;
+		} else {
+			$called_class = get_called_class();
 		}
 
 		$query = new WP_Query( $args );
