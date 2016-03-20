@@ -11,11 +11,16 @@
  * @package Thomas
  */
 
+Namespace Thomas;
+
+use Thomas\Data\ThomasModel as ThomasModel;
+
 require( 'inc/model.inc.php' );
 require( 'inc/collection.inc.php' );
 require( 'inc/routing.inc.php' );
 require( 'inc/controller.inc.php' );
 require( 'vendor/autoload.php' );
+
 
 class Client extends ThomasModel {
 

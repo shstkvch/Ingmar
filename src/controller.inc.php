@@ -3,6 +3,10 @@
  * Main controller class
  */
 
+namespace Thomas\Routing;
+
+use Thomas\Data\ThomasModel as ThomasModel;
+
 class ThomasController {
 
 	/**

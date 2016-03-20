@@ -3,6 +3,8 @@
  * Main Thomas Collection class
  */
 
+namespace Thomas\Collections;
+
 class ThomasCollection {
 
 	/**

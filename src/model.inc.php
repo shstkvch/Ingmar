@@ -3,6 +3,8 @@
  * Main Thomas model class
  */
 
+namespace Thomas\Data;
+
 class ThomasModel {
 
 	/**
